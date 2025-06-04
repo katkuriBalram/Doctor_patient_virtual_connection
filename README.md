@@ -1,4 +1,4 @@
-# Welcome to your Doctor_patient_virtual_connection Website
+# Welcome to Doctor_patient_virtual_connection Website
 
 
 **Use your preferred IDE**
