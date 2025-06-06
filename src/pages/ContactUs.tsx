@@ -28,19 +28,24 @@ const ContactUs = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  e.preventDefault();
+  setIsSubmitting(true);
 
-    try {
-      // Simulate form submission
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+  try {
+    const response = await fetch("http://localhost:8000/contact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
       toast({
         title: "Message Sent Successfully",
         description: "Thank you for contacting us. We'll get back to you within 24 hours.",
       });
-      
-      // Reset form
+
       setFormData({
         name: "",
         email: "",
@@ -49,16 +54,21 @@ const ContactUs = () => {
         category: "",
         message: ""
       });
-    } catch (error) {
-      toast({
-        title: "Failed to Send Message",
-        description: "Please try again later or contact us directly.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to send message");
     }
-  };
+  } catch (error) {
+    toast({
+      title: "Failed to Send Message",
+      description: "Please try again later or contact us directly.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50">

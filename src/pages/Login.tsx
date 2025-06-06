@@ -18,38 +18,36 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Get users from localStorage
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      
-      // Find user with matching email and password
-      const user = users.find((u: any) => u.email === email && u.password === password);
-      
-      if (user) {
-        // Store user data and login status in localStorage
-        localStorage.setItem('currentUser', JSON.stringify({
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          location: user.location
-        }));
-        localStorage.setItem('isLoggedIn', 'true');
-        
-        toast({
-          title: "Login Successful",
-          description: "Welcome back to HealthConnect!",
-        });
-        navigate("/");
-      } else {
-        toast({
-          title: "Login Failed",
-          description: "Invalid email or password. Please try again.",
-          variant: "destructive",
-        });
+      const response = await fetch("http://127.0.0.1:8000/login", {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || "Login failed");
       }
-    } catch (error) {
+
+      const user = await response.json();
+
+      // Store user data in localStorage
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      localStorage.setItem("isLoggedIn", "true");
+
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${user.name}!`,
+      });
+
+      navigate("/");
+    } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: "An error occurred. Please try again.",
+        description: error.message || "Invalid email or password",
         variant: "destructive",
       });
     } finally {
@@ -60,7 +58,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
           <Card>
@@ -83,7 +81,7 @@ const Login = () => {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="password">Password</Label>
                   <Input
@@ -95,12 +93,12 @@ const Login = () => {
                     required
                   />
                 </div>
-                
+
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
-              
+
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600">
                   Don't have an account?{" "}

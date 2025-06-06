@@ -76,14 +76,8 @@ const Header = () => {
               Book Appointment
             </Link>
             <Link 
-              to="/book-treatment"
-              className={`font-medium pb-1 transition-colors ${isActiveLink('/book-treatment') || isActiveLink('/treatments') ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-700 hover:text-green-600'}`}
-            >
-              Book Treatment
-            </Link>
-            <Link 
               to="/about"
-              className={`font-medium pb-1 transition-colors ${isActiveLink('/about') ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-700 hover:text-green-600'}`}
+              className={`font-medium pb-1 transition-colors ${isActiveLink('/book-treatment') || isActiveLink('/treatments') ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-700 hover:text-green-600'}`}
             >
               About Us
             </Link>

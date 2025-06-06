@@ -84,30 +84,49 @@ const AppointmentBookingForm = ({
     }
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast({
-        title: "Appointment Successfully Booked",
-        description: `Your appointment with ${doctorName} is confirmed for ${format(date, "MMMM d, yyyy")} at ${timeSlot}.`,
-      });
-      
-      // Set already booked state to show confirmation
-      setAlreadyBooked(true);
-      
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (error) {
-      toast({
-        title: "Booking Failed",
-        description: "There was an error booking your appointment. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const response = await fetch("http://localhost:8000/appointments", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      doctorId,
+      doctorName,
+      specialization,
+      appointmentType,
+      date: date?.toISOString(),  // store in ISO format
+      timeSlot,
+      name,
+      email,
+      phone,
+      age,
+      gender,
+      symptoms,
+      price,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to book appointment");
+  }
+
+  toast({
+    title: "Appointment Successfully Booked",
+    description: `Your appointment with ${doctorName} is confirmed for ${format(date, "MMMM d, yyyy")} at ${timeSlot}.`,
+  });
+
+  setAlreadyBooked(true);
+  onSuccess?.();
+} catch (error) {
+  toast({
+    title: "Booking Failed",
+    description: "There was an error booking your appointment. Please try again.",
+    variant: "destructive",
+  });
+} finally {
+  setIsSubmitting(false);
+}
+  }
 
   const handleBookAgain = () => {
     setAlreadyBooked(false);

@@ -3,7 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 
@@ -14,15 +20,16 @@ const Signup = () => {
     phone: "",
     password: "",
     confirmPassword: "",
-    location: ""
+    location: "",
   });
+
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -30,53 +37,47 @@ const Signup = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Passwords do not match. Please try again.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      if (formData.password !== formData.confirmPassword) {
-        toast({
-          title: "Password Mismatch",
-          description: "Passwords do not match. Please try again.",
-          variant: "destructive",
-        });
-        return;
+      const response = await fetch("http://127.0.0.1:8000/signup", {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+          location: formData.location,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || "Signup failed");
       }
 
-      // Get existing users from localStorage
-      const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
-      
-      // Check if email already exists
-      if (existingUsers.some((user: any) => user.email === formData.email)) {
-        toast({
-          title: "Email Already Exists",
-          description: "An account with this email already exists. Please login instead.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Create new user object
-      const newUser = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        password: formData.password,
-        location: formData.location
-      };
-
-      // Add new user to existing users
-      existingUsers.push(newUser);
-      
-      // Save updated users array to localStorage
-      localStorage.setItem('users', JSON.stringify(existingUsers));
-      
       toast({
         title: "Account Created Successfully",
         description: "Welcome to HealthConnect! Please sign in.",
       });
+
       navigate("/login");
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Signup Failed",
-        description: "An error occurred. Please try again.",
+        description: error.message || "An error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -87,7 +88,6 @@ const Signup = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
           <Card>
@@ -99,89 +99,33 @@ const Signup = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    type="text"
-                    placeholder="Enter your full name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder="Enter your phone number"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    name="location"
-                    type="text"
-                    placeholder="Enter your city/location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="Create a password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    placeholder="Confirm your password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                
+                {["name", "email", "phone", "location", "password", "confirmPassword"].map((field) => (
+                  <div key={field}>
+                    <Label htmlFor={field}>
+                      {field === "confirmPassword"
+                        ? "Confirm Password"
+                        : field.charAt(0).toUpperCase() + field.slice(1)}
+                    </Label>
+                    <Input
+                      id={field}
+                      name={field}
+                      type={field.toLowerCase().includes("password") ? "password" : "text"}
+                      placeholder={
+                        field === "confirmPassword"
+                          ? "Confirm your password"
+                          : `Enter your ${field}`
+                      }
+                      value={(formData as any)[field]}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                ))}
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
               </form>
-              
+
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600">
                   Already have an account?{" "}
