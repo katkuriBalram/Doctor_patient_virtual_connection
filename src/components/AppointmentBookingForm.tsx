@@ -18,6 +18,8 @@ import { Calendar as CalendarIcon, MessageSquare, Video, UserRound, AlertCircle 
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import DoctorChatInterface from "./DoctorChatInterface";
+import VideoConsultationInterface from "./VideoConsultationInterface";
 
 interface AppointmentBookingFormProps {
   doctorId: string | number;
@@ -44,6 +46,9 @@ const AppointmentBookingForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alreadyBooked, setAlreadyBooked] = useState(false);
   const [price, setPrice] = useState(300);
+  const [showChat, setShowChat] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const [isAppointmentTime, setIsAppointmentTime] = useState(false);
 
   // Calculate price based on appointment type
   useEffect(() => {
@@ -69,6 +74,66 @@ const AppointmentBookingForm = ({
     "04:00 PM", "05:00 PM", "06:00 PM"
   ];
 
+  
+      useEffect(() => {
+  const fetchAppointment = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/appointments/${doctorId}`);
+      const data = await res.json();
+
+      if (data.length > 0) {
+        const latestAppointment = data[data.length - 1]; // or pick the right one
+        setDate(new Date(latestAppointment.date)); // ISO string parsed into Date
+        setTimeSlot(latestAppointment.timeSlot);
+      }
+    } catch (err) {
+      console.error("Failed to fetch appointment", err);
+    }
+  };
+
+  fetchAppointment();
+}, [doctorId]);
+
+  const checkAppointmentTime = () => {
+    if (!date || !timeSlot) return false;
+
+    const now = new Date();
+    const appointmentDate = new Date(date);
+    
+    // Parse the time slot (e.g., "04:00 PM")
+    const [time, period] = timeSlot.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+    
+    // Convert to 24-hour format
+    if (period === "PM" && hours !== 12) hours += 12;
+    if (period === "AM" && hours === 12) hours = 0;
+    
+    // Set appointment time
+    appointmentDate.setHours(hours, minutes, 0, 0);
+    
+    // Allow access 5 minutes before and 30 minutes after the appointment time
+    const fiveMinutesBefore = new Date(appointmentDate.getTime() - 5 * 60000);
+    const thirtyMinutesAfter = new Date(appointmentDate.getTime() + 30 * 60000);
+    
+    return now >= fiveMinutesBefore && now <= thirtyMinutesAfter;
+  };
+
+    useEffect(() => {
+    if (alreadyBooked) {
+      const checkTime = () => {
+        setIsAppointmentTime(checkAppointmentTime());
+      };
+      
+      // Check immediately
+      checkTime();
+      
+      // Then check every minute
+      const interval = setInterval(checkTime, 60000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [alreadyBooked, date, timeSlot]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -82,6 +147,7 @@ const AppointmentBookingForm = ({
       setIsSubmitting(false);
       return;
     }
+
 
     try {
   const response = await fetch("http://localhost:8000/appointments", {
@@ -134,6 +200,30 @@ const AppointmentBookingForm = ({
     setTimeSlot("");
     setAppointmentType("chat");
   };
+
+    if (showChat) {
+    return (
+      <DoctorChatInterface
+        doctorName={doctorName}
+        specialization={specialization}
+        appointmentDate={date!}
+        appointmentTime={timeSlot}
+        onClose={() => setShowChat(false)}
+      />
+    );
+  }
+
+  if (showVideo) {
+    return (
+      <VideoConsultationInterface
+        doctorName={doctorName}
+        specialization={specialization}
+        appointmentDate={date!}
+        appointmentTime={timeSlot}
+        onClose={() => setShowVideo(false)}
+      />
+    );
+  }
 
   if (alreadyBooked) {
     return (
@@ -188,9 +278,56 @@ const AppointmentBookingForm = ({
             </p>
           </div>
           
-          <Button onClick={handleBookAgain} className="w-full bg-green-600 hover:bg-green-700 text-white">
-            Book Another Appointment
-          </Button>
+           <div className="space-y-3">
+            {appointmentType === "chat" && (
+              <div className="space-y-2">
+                <Button 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => setShowChat(true)}
+                  //disabled={!isAppointmentTime}
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  {isAppointmentTime ? "Start Chat with Doctor" : "Chat will be available at appointment time"}
+                </Button>
+                {!isAppointmentTime && (
+                  <p className="text-sm text-gray-500 text-center">
+                    Chat will be available 5 minutes before your appointment time
+                  </p>
+                )}
+              </div>
+            )}
+            
+            {appointmentType === "video" && (
+              <div className="space-y-2">
+                <Button 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => setShowVideo(true)}
+                  //disabled={!isAppointmentTime}
+                >
+                  <Video className="h-4 w-4 mr-2" />
+                  {isAppointmentTime ? "Join Video Consultation" : "Video call will be available at appointment time"}
+                </Button>
+                {!isAppointmentTime && (
+                  <p className="text-sm text-gray-500 text-center">
+                    Video consultation will be available 5 minutes before your appointment time
+                  </p>
+                )}
+              </div>
+            )}
+            
+            {appointmentType === "physical" && (
+              <div className="bg-blue-50 p-4 rounded-lg text-center">
+                <p className="text-gray-700 font-medium">Your Physical Appointment Details:</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Please visit the clinic on {date ? format(date, "MMMM d, yyyy") : ""} at {timeSlot}
+                </p>
+              </div>
+            )}
+            
+            <Button onClick={handleBookAgain} className="w-full bg-green-600 hover:bg-green-700 text-white">
+              Book Another Appointment
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );

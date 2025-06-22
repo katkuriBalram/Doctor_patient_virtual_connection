@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, Menu, X } from "lucide-react";
+import { User, Menu, X, Mail } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -75,9 +75,10 @@ const Header = () => {
             >
               Book Appointment
             </Link>
+
             <Link 
               to="/about"
-              className={`font-medium pb-1 transition-colors ${isActiveLink('/book-treatment') || isActiveLink('/treatments') ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-700 hover:text-green-600'}`}
+              className={`font-medium pb-1 transition-colors ${isActiveLink('/about') ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-700 hover:text-green-600'}`}
             >
               About Us
             </Link>
@@ -87,6 +88,14 @@ const Header = () => {
             >
               Contact Us
             </Link>
+            {isLoggedIn && (
+              <Link 
+                to="/appointments"
+                className={`font-medium pb-1 transition-colors ${isActiveLink('/appointments') ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-700 hover:text-green-600'}`}
+              >
+                <Mail className="h-5 w-5" />
+              </Link>
+            )}
           </nav>
 
           {/* User Actions */}
@@ -173,6 +182,15 @@ const Header = () => {
               >
                 Contact Us
               </Link>
+              {isLoggedIn && (
+                <Link 
+                  to="/appointments"
+                  className={`font-medium ${isActiveLink('/appointments') ? 'text-green-600' : 'text-gray-700 hover:text-green-600'}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Mail className="h-5 w-5" />
+                </Link>
+              )}
               {!isLoggedIn && (
                 <div className="pt-4 border-t border-gray-200">
                   <Button 

@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Header from "@/components/Header";
 import { MapPin, GraduationCap, User, ArrowLeft } from "lucide-react";
-import TreatmentBookingForm from "@/components/TreatmentBookingForm";
 
 const TreatmentSpecialization = () => {
   const { specialization } = useParams();
@@ -90,14 +89,6 @@ const TreatmentSpecialization = () => {
               </h2>
             </div>
             
-            <TreatmentBookingForm 
-              treatmentId={treatment.id}
-              treatmentName={treatment.name}
-              hospital={treatment.hospital}
-              price={treatment.cost}
-              doctorName={treatment.doctorName}
-              onSuccess={handleBookingSuccess}
-            />
           </div>
         </div>
       );

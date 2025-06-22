@@ -2,17 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  User, Mail, Phone, MapPin,
-  Calendar, Clock, Stethoscope
-} from 'lucide-react';
+import { Calendar, Clock, Stethoscope } from 'lucide-react';
 import { toast } from "@/hooks/use-toast";
 
-const Profile = () => {
-  const [user, setUser] = useState<any>(null);
-  const [appointments, setAppointments] = useState<any[]>([]);
+const Appointments = () => {
   const navigate = useNavigate();
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -21,82 +17,49 @@ const Profile = () => {
     if (!isLoggedIn || !storedUser) {
       toast({
         title: "Access Denied",
-        description: "Please login to view your profile.",
+        description: "Please login to view your appointments.",
         variant: "destructive",
       });
       navigate('/login');
       return;
     }
 
-    const parsedUser = JSON.parse(storedUser);
-    setUser(parsedUser);
-
+    const user = JSON.parse(storedUser);
     const fetchAppointments = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/appointments/user/${parsedUser.email}`);
+        const res = await fetch(`http://localhost:8000/appointments/user/${user.email}`);
         if (!res.ok) throw new Error("Failed to fetch appointments");
 
         const data = await res.json();
         setAppointments(data);
-      } catch (error) {
-        console.error("Error fetching appointments:", error);
+      } catch (err) {
+        console.error(err);
         toast({
           title: "Error",
-          description: "Could not fetch your appointments.",
+          description: "Could not fetch appointments.",
           variant: "destructive",
         });
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchAppointments();
   }, [navigate]);
 
-  if (!user) return <div className="text-center mt-10 text-gray-600">Loading profile...</div>;
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-        {/* Profile Info */}
-        <Card className="animate-fade-in">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4">
-              <Avatar className="w-24 h-24 mx-auto">
-                <AvatarImage
-                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
-                  alt={user.name}
-                />
-                <AvatarFallback>
-                  <User className="h-12 w-12" />
-                </AvatarFallback>
-              </Avatar>
-            </div>
-            <CardTitle className="text-2xl">{user.name}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center text-gray-700">
-              <Mail className="h-5 w-5 mr-2 text-green-600" />
-              <span>{user.email}</span>
-            </div>
-            <div className="flex items-center text-gray-700">
-              <Phone className="h-5 w-5 mr-2 text-green-600" />
-              <span>{user.phone}</span>
-            </div>
-            <div className="flex items-center text-gray-700">
-              <MapPin className="h-5 w-5 mr-2 text-green-600" />
-              <span>{user.location}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Appointments */}
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Card className="animate-fade-in">
           <CardHeader>
             <CardTitle className="text-2xl">Your Appointments</CardTitle>
           </CardHeader>
           <CardContent>
-            {appointments.length === 0 ? (
+            {loading ? (
+              <div className="text-gray-600">Loading appointments...</div>
+            ) : appointments.length === 0 ? (
               <div className="text-gray-600">No appointments found.</div>
             ) : (
               <div className="space-y-4">
@@ -138,4 +101,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default Appointments;

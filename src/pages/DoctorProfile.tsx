@@ -7,49 +7,60 @@ import Header from "@/components/Header";
 import { MapPin, Phone, Mail, GraduationCap, Calendar, ArrowLeft } from "lucide-react";
 import AppointmentBookingForm from "@/components/AppointmentBookingForm";
 
+const allDoctors = [
+  {
+    id: 1,
+    name: "Dr.Yamini",
+    specialization: "Gynecologist",
+    experience: 8,
+    location: "Hyderabad",
+    contact: "+91 987654321",
+    availability: "Available Today",
+    gender: "female",
+    image: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=200&h=200&fit=crop",
+  },
+  {
+    id: 2,
+    name: "Dr. Rajesh",
+    specialization: "Neurologist",
+    experience: 12,
+    location: "Hyderabad",
+    contact: "+91 987654321",
+    availability: "Available Tomorrow",
+    gender: "male",
+    image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&h=200&fit=crop",
+  },
+  {
+    id: 3,
+    name: "Dr. Akshaya",
+    specialization: "Child Specialist",
+    experience: 6,
+    location: "Hyderabad",
+    contact: "+91 987654321",
+    availability: "Available Today",
+    gender: "female",
+    image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&h=200&fit=crop",
+  },
+  {
+    id: 4,
+    name: "Dr. Balram",
+    specialization: "Cardiologist",
+    experience: 15,
+    location: "Hyderabad",
+    contact: "+91 987654321",
+    availability: "Available in 2 days",
+    gender: "male",
+    image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop",
+  }
+];
+
 const DoctorProfile = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const showBooking = searchParams.get('book') === 'true';
 
-  // Mock data - in real app this would come from API
-  const doctor = {
-    id: Number(id) || 1,
-    name: "Dr. Yamini",
-    specialization: "Gynecologist",
-    experience: 8,
-    qualification: "MD, MBBS, FCPS",
-    location: "Hyderabad",
-    contact: "+91 987654321",
-    email: "yamini@gmail.com",
-    availability: "Monday - Friday: 9:00 AM - 5:00 PM",
-    image: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=200&h=200&fit=crop",
-    services: [
-      "General gynecological examinations",
-      "Prenatal care and delivery",
-      "Family planning and contraception",
-      "Menopause management",
-      "Treatment for hormonal disorders",
-      "Gynecological surgeries"
-    ],
-    education: [
-      {
-        degree: "Doctor of Medicine (MD)",
-        institution: "Harvard Medical School",
-        year: "2011-2015"
-      },
-      {
-        degree: "Residency in Obstetrics & Gynecology",
-        institution: "Johns Hopkins Hospital",
-        year: "2015-2019"
-      },
-      {
-        degree: "Fellowship in Reproductive Endocrinology",
-        institution: "Mayo Clinic",
-        year: "2019-2021"
-      }
-    ]
-  };
+  // Fetch doctor details based on id
+  const doctor = allDoctors.find(doc => doc.id === Number(id)) || allDoctors[0];
 
   // Format specialization for the route
   const specializationRoute = doctor.specialization.toLowerCase().replace(/ /g, '-');
@@ -90,11 +101,6 @@ const DoctorProfile = () => {
                 <div className="flex items-start gap-3 text-sm">
                   <Phone className="h-5 w-5 text-green-600 shrink-0" />
                   <span>{doctor.contact}</span>
-                </div>
-                
-                <div className="flex items-start gap-3 text-sm">
-                  <Mail className="h-5 w-5 text-green-600 shrink-0" />
-                  <span>{doctor.email}</span>
                 </div>
                 
                 <div className="flex items-start gap-3 text-sm">
